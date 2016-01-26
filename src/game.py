@@ -5,6 +5,7 @@ Created on Jan 24, 2016
 '''
 
 import pygame
+from pygame.locals import *
 import universe
 import character
 
@@ -45,18 +46,41 @@ def show_main_menu():
     return "new game"
 
 def handle_key_presses(keys):
-    action = None
-    
-    for key in keys:
+    for key, state in keys:
         #WASD movement
         # While key pressed, increase acceleration
-        if key == pygame.K_a:
-            player.move_left()
-        elif key == pygame.K_d:
-            player.move_right()
-        # jump
-        elif key == pygame.K_w:
-            player.jump()
+        if state == pygame.KEYDOWN:
+            if key == pygame.K_a:
+                player.left_flag = True
+            elif key == pygame.K_d:
+                player.right_flag = True
+            # jump
+            elif key == pygame.K_w:
+                player.jump_flag = True
+            # crouch
+            elif key == pygame.K_s:
+                player.crouch_flag = True
+        if state == pygame.KEYUP:
+            if key == pygame.K_a:
+                player.left_flag = False
+            elif key == pygame.K_d:
+                player.right_flag = False
+            # jump
+            elif key == pygame.K_w:
+                player.jump_flag = False
+            # crouch
+            elif key == pygame.K_s:
+                player.crouch_flag = False
+    
+    if player.left_flag:
+        player.move_left()
+    elif player.right_flag:
+        player.move_right()
+    
+    if player.jump_flag:
+        player.jump()
+    if player.crouch_flag:
+        player.crouch()
 
 def move_and_draw_all_game_objects():
     gameDisplay.fill((255,255,255))
@@ -94,11 +118,13 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 playing = False
-            elif event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     playing = False
                 #print(event)    #TODO: Pass key events to the key event handler, handle actions
-                keys.append(event.key)
+                keys.append((event.key, pygame.KEYDOWN))
+            elif event.type == pygame.KEYUP:
+                keys.append((event.key, pygame.KEYUP))
         handle_key_presses(keys)
             
             

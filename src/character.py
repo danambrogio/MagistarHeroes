@@ -14,7 +14,14 @@ class Character(sprite.Sprite):
     '''
     
     def __init__(self, image, position, name):
-        sprite.Sprite.__init__(self, image, position)
+        super().__init__(image, position)
+        #sprite.Sprite.__init__(self, image, position)
         
+        ''' Character-only attributes '''
         self.name = name
         self.stats = None
+        
+        self.left_flag = False
+        self.right_flag = False
+        self.jump_flag = False
+        self.crouch_flag = False
