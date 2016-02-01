@@ -41,9 +41,17 @@ class Sprite(object):
         # This is a weakref to the parent container of objects
         self.object_container = object_container
         
+    def convert_to_colorkey_alpha(self, surf, colorkey=pygame.color.Color("magenta")):
+        newsurf = pygame.surface.Surface(surf.get_size())
+        newsurf.fill(colorkey)
+        newsurf.blit(surf, (0, 0))
+        newsurf.set_colorkey(colorkey)
+        return newsurf
+    
     def load_image(self, image):
         try:
-            self.image = pygame.image.load('../img/' + image + '.png').convert_alpha()
+            img = pygame.image.load('../img/' + image + '.png').convert_alpha()
+            self.image = self.convert_to_colorkey_alpha(img)
         except pygame.error as message:
             print("oops!")
             raise SystemExit(message)
@@ -134,11 +142,11 @@ class ShortLivedSprite(Sprite):
             else:
                 fps = (1 / clock.get_fps())
             self.lifetime = self.lifetime - fps
+            self.image.set_alpha(50)
             self.linear_fade()
         else:
             self.alive = False
             
     def linear_fade(self):
         fade_amt = (self.lifetime / self.initial_lifetime) * 255
-        print(fade_amt)
         self.image.set_alpha(fade_amt)
