@@ -9,6 +9,7 @@ from enum import Enum
 
 class GravityType(Enum):
     Normal = 1
+    LowG = 0.5
     ZeroG = 0
     Reversed = -1
     
@@ -34,7 +35,7 @@ class Sprite(object):
         self.position = position            # tuple
         self.velocity = (0, 0)              # tuple
         self.acceleration = (0.0, 0.0)      # tuple
-        self.grounded = False               # Can you jump?
+        #self.grounded = False               # Can you jump?
         self.gravity = gravity              # What is gravity at the moment
         self.weight = weight                # How much gravity affects you
         
@@ -65,28 +66,19 @@ class Sprite(object):
         else:
             fps = (1 / clock.get_fps())
         ''' Gravity '''
-        if self.gravity == GravityType.Normal:
-            gravity_accel = (0, (1000 + (4 * self.weight.value)))
+        if self.gravity == GravityType.ZeroG:
+            gravity_accel = (0, 0)
         elif self.gravity == GravityType.Reversed:
             gravity_accel = (0, (-1000 - (4 * self.weight.value)))
         else:
-            gravity_accel = (0, 0)
-        
-        #print("Gravity acceleration:")
-        #print(gravity_accel)
+            gravity_accel = (0, (1000 + (4 * self.weight.value)))
         
         # Movement acceleration
         # Handle friction (lower acceleration to 0)
-        temp = self.acceleration
-        self.acceleration = (temp[0] * 0.2, self.acceleration[1])
+        self.acceleration = (self.acceleration[0] * 0.2, self.acceleration[1])
         me_velocity = tuple(fps * _ for _ in self.acceleration)
-        #print("Me acceleration:")
-        #print(self.acceleration)
         
         gravity_velocity = tuple(fps * _ for _ in gravity_accel)
-        
-        #print("Gravity velocity:")
-        #print(gravity_velocity)
         ''' Gravity ends '''
         
         # Find new velocity
@@ -96,8 +88,12 @@ class Sprite(object):
         # Check for ground
         if self.isGrounded():
             if self.velocity[1] > 0:
-                self.velocity = (self.velocity[0] * 0.80, 0) # Friction
+                self.velocity = (self.velocity[0], 0) # Floor
             self.acceleration = (self.acceleration[0], 0)
+        else:
+            pass
+
+        self.handle_friction()
 
         velocity_step = tuple(fps * _ for _ in self.velocity)
         
@@ -114,9 +110,18 @@ class Sprite(object):
             return True
         else:
             return False
+    
+    def handle_friction(self):
+        if self.isGrounded():
+            friction = 0.85
+        else:
+            friction = 0.90
+            
+        if abs(self.velocity[0] * friction) < 20: friction = 0
+        self.velocity = (self.velocity[0] * friction, self.velocity[1])
             
     def get_max_speed(self):
-        return ((1 / self.weight.value) + 100)
+        return ((1 / self.weight.value) + 40)
     
     def detect_collisions(self):
         for name, thingy in self.object_container.items():

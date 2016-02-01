@@ -24,6 +24,8 @@ class Character(sprite.Sprite):
         self.stats = Stats()
         self.spellcasts = 0
         
+        self.facing = "right"
+        
         ''' Key presses '''
         self.left_flag = False
         self.right_flag = False
@@ -38,11 +40,13 @@ class Character(sprite.Sprite):
         
         
     def move_left(self):
+        self.velocity = (self.velocity[0] - 50, self.velocity[1])
         if self.velocity[0] > (self.get_max_speed() * -1):
-            self.velocity = (self.velocity[0] - 50, self.velocity[1])
+            self.velocity = (self.get_max_speed() * -1, self.velocity[1])
     def move_right(self):
+        self.velocity = (self.velocity[0] + 50, self.velocity[1])
         if self.velocity[0] < self.get_max_speed():
-            self.velocity = (self.velocity[0] + 50, self.velocity[1])
+            self.velocity = (self.get_max_speed(), self.velocity[1])
     def jump(self):
         if self.isGrounded():
             jump_power = -500 + (-400 * (1 / self.weight.value))
@@ -57,15 +61,21 @@ class Character(sprite.Sprite):
             
     ''' Spells '''
     def getDefaultCastOrigin(self):
-        x = self.rect.x + self.rect.w
-        y = self.rect.y
-        return (x, y)
+        if self.facing == "right":
+            x = self.rect.x + self.rect.w
+            y = self.rect.y
+            return (x, y)
+        else:
+            x = self.rect.x
+            y = self.rect.y
+            return (x, y)
         
     def channel_fire(self):
         if self.stats.fire == 0:
             self.spellcasts = self.spellcasts + 1
-            firebll = sprite.ShortLivedSprite(0.30, "fireball", self.getDefaultCastOrigin(), 
-                                    self.object_container, sprite.Weight.Heavy, sprite.GravityType.Normal)
+            firebll = sprite.ShortLivedSprite(0.20, "fireball", self.getDefaultCastOrigin(), 
+                                    self.object_container, sprite.Weight.Light, 
+                                    sprite.GravityType.LowG)
             self.object_container['fireball'] = firebll
             firebll.velocity = self.velocity
             firebll.acceleration = self.acceleration
@@ -73,10 +83,11 @@ class Character(sprite.Sprite):
         if self.stats.fire >= 1:
             self.spellcasts = self.spellcasts + 1
             firebll = sprite.ShortLivedSprite(1, "fireball", self.getDefaultCastOrigin(), 
-                                    self.object_container, sprite.Weight.Light, sprite.GravityType.Normal)
+                                    self.object_container, sprite.Weight.Light, 
+                                    sprite.GravityType.LowG)
             self.object_container['fireball{0}'.format(self.spellcasts)] = firebll
             # Give it momentum
-            firebll.velocity = (400 + (10 * self.stats.fire), -50)
+            firebll.velocity = (700 + (100 * self.stats.fire), (-70 - self.stats.fire))
     
 class Stats(object):
     ''' Contains a character's spell stats '''
